@@ -32,9 +32,9 @@ public final class Book extends CodeOriented
     {
         code = code.toUpperCase();
         Helpers.throwIfNullOrWhitespace(code, "Book code");
-        if (!Helpers.matchesRegex(code, "^B[0-9]{6}$"))
+        if (!Helpers.matchesRegex(code, "^B[0-9]+$"))
         {
-            throw new IllegalArgumentException("Book code must be the letter B followed by 6 numbers.");
+            throw new IllegalArgumentException("Book code must be the letter B followed by a numeric identifier.");
         }
     }
 
