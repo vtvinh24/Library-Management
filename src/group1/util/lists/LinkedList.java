@@ -136,4 +136,9 @@ public class LinkedList<T extends Comparable>
         }
         return length;
     }
+
+    public void clear() {
+        head = null;
+        tail = null;
+    }
 }

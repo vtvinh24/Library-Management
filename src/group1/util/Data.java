@@ -10,14 +10,10 @@ public class Data {
 
     public ArrayList loadBooks() {
         String[] books = loadFile("books.txt").split(System.lineSeparator());
-        System.out.println(books.length);
         ArrayList bookList = new ArrayList<Book>();
 
         for (String book : books) {
-            if (isInvalidBook(book)) {
-                System.out.println(book + " is invalid.");
-                continue;
-            } else {
+            if (isValidBook(book)) {
                 String[] bookData = book.split("\\|\\|");
                 String bCode = bookData[0];
                 String title = bookData[1];
@@ -29,8 +25,8 @@ public class Data {
         return bookList;
     }
 
-    private boolean isInvalidBook(String b) {
-        return !(b.matches("B\\d+\\|\\|.*"));
+    private boolean isValidBook(String b) {
+        return b.matches("B\\d+\\|\\|.*");
     }
 
     public void saveBooks(Book[] books) {
