@@ -34,7 +34,9 @@ public class Data {
         writeFile("books.txt", data.toString());
     }
 
-    public Reader
+    public Reader loadReaders() {
+        
+    }
 
 
     public String loadFile(String fileName) {
