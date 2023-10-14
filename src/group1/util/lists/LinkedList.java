@@ -1,7 +1,5 @@
 package group1.util.lists;
 
-import sun.awt.image.ImageWatched;
-
 public class LinkedList<T extends Comparable>
 {
     private LinkedNode<T> head;
