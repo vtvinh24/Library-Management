@@ -14,6 +14,7 @@ public class LinkedList<T extends Comparable>
             head = node;
             tail = head;
         } else {
+            node.setPrev(tail);
             tail.setNext(node);
             tail = node;
         }
@@ -21,22 +22,45 @@ public class LinkedList<T extends Comparable>
 
 
     // Delete Object
-    public void delete(T t) {
-        if(isEmpty()) return;
-        LinkedNode node = head;
-        while(node.getValue() != t) {
-            node = node.getNext();
-            if(node == null) return;
-            // Node not found
-        }
+//    public void delete(T t) {
+//        if(isEmpty()) return;
+//        LinkedNode node = head;
+//        while(node.getValue() != t) {
+//            node = node.getNext();
+//            if(node == null) return;
+//            // Node not found
+//        }
+//
+//        LinkedNode prev = node.getPrev();
+//        LinkedNode next = node.getNext();
+//        if(prev != null) prev.setNext(next);
+//        if(next != null) next.setPrev(prev);
+//        node = null;
+//
+//    }
 
+    // Delete by index
+    public void delete(int k) {
+        if(!(k < length())) {
+            // Invalid index
+            return;
+        }
+        int current = 0;
+        LinkedNode node = head;
+        while(current != k) {
+            node = node.getNext();
+            current++;
+        }
         LinkedNode prev = node.getPrev();
         LinkedNode next = node.getNext();
         if(prev != null) prev.setNext(next);
         if(next != null) next.setPrev(prev);
-        node = null;
-
     }
+
+    // Alternative implementation
+//    public void delete(int k) {
+//        delete(get(k).getValue());
+//    }
 
     // Search Object
     public LinkedNode<T> search(T t) {
@@ -49,6 +73,17 @@ public class LinkedList<T extends Comparable>
             node = node.getNext();
         }
         return null;
+    }
+
+    public void addAfter(int k, T t) {
+        LinkedNode kNode = get(k);
+        LinkedNode newNode = new LinkedNode(t, null);
+        if(!(k < length())) {
+            // Invalid index
+            return;
+        }
+        if(kNode.getNext() != null) newNode.setNext(kNode.getNext());
+        kNode.setNext(newNode);
     }
 
 
@@ -69,13 +104,12 @@ public class LinkedList<T extends Comparable>
         return head == null;
     }
 
-    public LinkedNode<T> get(int i) {
+    public LinkedNode get(int i) {
         if(i > length()) return null;
         LinkedNode node = head;
-        int current = 0;
-        while (current != i) {
+        while(i != 0) {
             node = node.getNext();
-            i++;
+            i--;
         }
         return node;
     }

@@ -14,7 +14,16 @@ public class UtilTest {
         for(Book b : books) {
             bookList.add(b);
         }
-
+        bookList.display();
+        System.out.println("------------------");
+        Book tmpBook = new Book("B2022", "2023", 100);
+        System.out.println(bookList.length());
+        bookList.add(tmpBook);
+        System.out.println(bookList.length());
+        bookList.addAfter(5, tmpBook);
+        bookList.addAfter(3, tmpBook);
+        bookList.addAfter(1, tmpBook);
+        System.out.println("get()");
         bookList.display();
 
     }
