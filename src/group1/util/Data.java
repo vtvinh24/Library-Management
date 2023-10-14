@@ -1,13 +1,9 @@
 package group1.util;
 
 import group1.libmgmt.backend.Book;
-import group1.util.lists.LinkedList;
-import group1.util.lists.LinkedNode;
+import group1.libmgmt.backend.Reader;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
 
 public class Data {
 
@@ -34,12 +30,23 @@ public class Data {
         writeFile("books.txt", data.toString());
     }
 
-    public Reader loadReaders() {
-        
+    public Reader[] loadReaders() {
+        String[] readers = loadFile("readers.txt").split(System.lineSeparator());
+        Reader[] readerArr = new Reader[readers.length];
+        for(int i = 0; i < readerArr.length; i++) {
+            String[] readerData = readers[i].split("\\|\\|");
+            String rcode = readerData[0];
+            String name = readerData[1];
+            int birthYear = Integer.parseInt(readerData[2]);
+            Reader r = new Reader(rcode, name, birthYear);
+            readerArr[i] = r;
+        }
+        return readerArr;
     }
 
 
     public String loadFile(String fileName) {
+        if(!foundFile(fileName)) createFile(fileName);
         try(BufferedReader br = new BufferedReader(new FileReader(fileName))) {
             StringBuilder sb = new StringBuilder();
             String line = br.readLine();
@@ -53,7 +60,11 @@ public class Data {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
 
+    private boolean foundFile(String fileName) {
+        File f = new File(fileName);
+        return f.exists() && !f.isDirectory();
     }
 
     private void fileNotFound(String fileName) {

@@ -32,7 +32,7 @@ public final class Book extends CodeOriented
     {
         code = code.toUpperCase();
         Helpers.throwIfNullOrWhitespace(code, "Book code");
-        if (!Helpers.matchesRegex(code, "^B[0-9]+$"))
+        if (!Helpers.matchesRegex(code, "^B\\d+$"))
         {
             throw new IllegalArgumentException("Book code must be the letter B followed by a numeric identifier.");
         }

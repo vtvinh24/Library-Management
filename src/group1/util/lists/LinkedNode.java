@@ -1,9 +1,10 @@
 package group1.util.lists;
 
-public class LinkedNode<T extends Comparable<T>> 
+public class LinkedNode<T extends Comparable>
 {
     private T value;
     private LinkedNode<T> next;
+    private LinkedNode<T> prev;
 
     public LinkedNode(T value, LinkedNode<T> next)
     {
@@ -33,4 +34,13 @@ public class LinkedNode<T extends Comparable<T>>
     {
         this.next = next;
     }
+
+    public LinkedNode<T> getPrev() {
+        return prev;
+    }
+
+    public void setPrev(LinkedNode<T> prev) {
+        this.prev = prev;
+    }
+
 }
