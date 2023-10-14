@@ -1,14 +1,18 @@
 package group1.libmgmt.backend;
 
-import group1.util.CodeOriented;
+import group1.util.CodeDiscriminated;
 import group1.util.Helpers;
+import group1.util.StringListSerializable;
+import java.util.ArrayList;
+import java.util.List;
 
-public final class Reader extends CodeOriented
+public final class Reader extends CodeDiscriminated implements StringListSerializable
 {
     private String code;
     private String name;
     private int birthYear;
 
+    public Reader() {;}
     public Reader(String code, String name, int birthYear)
     {
         this.setCode(code);
@@ -67,4 +71,26 @@ public final class Reader extends CodeOriented
     {
         return String.format("Reader (%s): %s (%d)", this.getCode(), this.getName(), this.getBirthYear());
     }  
+    
+    @Override
+    public List<String> serialize()
+    {
+        ArrayList<String> output = new ArrayList<>();
+        output.add(getCode());
+        output.add(getName());
+        output.add(Integer.toString(getBirthYear()));
+        return output;
+    }
+    @Override
+    public void deserialize(List<String> input)
+    {
+        if (input.size() != 3)
+        {
+            throw new IllegalArgumentException("Input didn't contain the correct number of fields.");
+        }
+        
+        setCode(input.get(0));
+        setName(input.get(1));
+        setBirthYear(Integer.parseInt(input.get(2)));
+    }    
 }

@@ -2,12 +2,12 @@ package group1.util;
 
 import java.util.Objects;
 
-public abstract class CodeOriented implements Comparable<CodeOriented> 
+public abstract class CodeDiscriminated implements Comparable<CodeDiscriminated> 
 {
     public abstract String getCode();
     
     @Override
-    public int compareTo(CodeOriented other)
+    public int compareTo(CodeDiscriminated other)
     {
         if (!Helpers.compareTypes(this, other))
         {
@@ -19,7 +19,7 @@ public abstract class CodeOriented implements Comparable<CodeOriented>
     @Override
     public boolean equals(Object other)
     {
-        return Helpers.compareTypes(this, other) && this.getCode().equals(((CodeOriented)other).getCode());
+        return Helpers.compareTypes(this, other) && this.getCode().equals(((CodeDiscriminated)other).getCode());
     }
     @Override
     public int hashCode()

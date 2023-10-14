@@ -1,14 +1,20 @@
 package group1.libmgmt.backend;
 
-import group1.util.CodeOriented;
+import group1.util.CodeDiscriminated;
 import group1.util.Helpers;
+import group1.util.StringListSerializable;
+import java.util.ArrayList;
+import java.util.List;
 
-public final class Book extends CodeOriented
+public final class Book extends CodeDiscriminated implements StringListSerializable
 {
     private String code;
     private String title;
     private double price;
-
+    private int quantity;
+    private int lent;
+    
+    public Book() {;}
     public Book(String code, String title, double price)
     {
         this.setCode(code);
@@ -62,9 +68,81 @@ public final class Book extends CodeOriented
         this.price = price;
     }
     
+    public int getQuantity()
+    {
+        return quantity;
+    }
+    public void setQuantity(int quantity)
+    {
+        if (quantity < 0)
+        {
+            throw new IllegalArgumentException("A book cannot be negatively stocked.");
+        }        
+        if (lent > quantity)
+        {
+            throw new IllegalArgumentException("Not enough copies to maintain lendings.");
+        }        
+        this.quantity = quantity;
+    }
+
+    public int getLent()
+    {
+        return lent;
+    }
+    public void setLent(int lent)
+    {
+        if (lent < 0)
+        {
+            throw new IllegalArgumentException("A book cannot be lent negative times.");
+        }
+        if (lent > quantity)
+        {
+            throw new IllegalArgumentException("Not enough copies to lend.");
+        }
+        
+        this.lent = lent;
+    }    
+    public void hasBeenLent()
+    {
+        this.setLent(this.getLent() + 1);
+    }
+    public void hasBeenReturned()
+    {
+        this.setLent(this.getLent() - 1);
+    }
+    
+    public boolean isLendable()
+    {
+        return this.getQuantity() > this.getLent();
+    }
+    
     @Override
     public String toString()
     {
         return String.format("Book (%s): %s", this.getCode(), this.getTitle());
+    }
+
+    @Override
+    public List<String> serialize()
+    {
+        ArrayList<String> output = new ArrayList<>();
+        output.add(getCode());
+        output.add(getTitle());
+        output.add(Double.toString(getPrice()));
+        output.add(Integer.toString(getQuantity()));
+        return output;
+    }
+    @Override
+    public void deserialize(List<String> input)
+    {
+        if (input.size() != 4)
+        {
+            throw new IllegalArgumentException("Input didn't contain the correct number of fields.");
+        }
+        
+        setCode(input.get(0));
+        setTitle(input.get(1));
+        setPrice(Double.parseDouble(input.get(2)));
+        setQuantity(Integer.parseInt(input.get(3)));
     }
 }
