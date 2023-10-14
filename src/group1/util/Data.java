@@ -4,21 +4,33 @@ import group1.libmgmt.backend.Book;
 import group1.libmgmt.backend.Reader;
 
 import java.io.*;
+import java.util.ArrayList;
 
 public class Data {
 
-    public Book[] loadBooks() {
+    public ArrayList loadBooks() {
         String[] books = loadFile("books.txt").split(System.lineSeparator());
-        Book[] bookArr = new Book[books.length];
-        for(int i = 0; i < bookArr.length; i++) {
-            String[] bookData = books[i].split("\\|\\|");
-            String bcode = bookData[0];
-            String title = bookData[1];
-            double price = Double.parseDouble(bookData[2]);
-            Book b = new Book(bcode, title, price);
-            bookArr[i] = b;
+        System.out.println(books.length);
+        ArrayList bookList = new ArrayList<Book>();
+
+        for (String book : books) {
+            if (isInvalidBook(book)) {
+                System.out.println(book + " is invalid.");
+                continue;
+            } else {
+                String[] bookData = book.split("\\|\\|");
+                String bCode = bookData[0];
+                String title = bookData[1];
+                double price = Double.parseDouble(bookData[2]);
+                Book b = new Book(bCode, title, price);
+                bookList.add(b);
+            }
         }
-        return bookArr;
+        return bookList;
+    }
+
+    private boolean isInvalidBook(String b) {
+        return !(b.matches("B\\d+\\|\\|.*"));
     }
 
     public void saveBooks(Book[] books) {
