@@ -1,5 +1,7 @@
 package group1.util.lists;
 
+import java.util.ArrayList;
+
 public class LinkedList<T extends Comparable>
 {
     private LinkedNode<T> head;
@@ -94,6 +96,17 @@ public class LinkedList<T extends Comparable>
             node = node.getNext();
         }
 
+    }
+
+    // Traverse
+    public ArrayList traverse() {
+        ArrayList list = new ArrayList();
+        LinkedNode node = head;
+        while(node != null) {
+            list.add(node.getValue());
+            node = node.getNext();
+        }
+        return list;
     }
 
 
