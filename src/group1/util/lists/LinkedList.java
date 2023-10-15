@@ -1,6 +1,7 @@
 package group1.util.lists;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class LinkedList<T extends Comparable>
 {
@@ -137,8 +138,42 @@ public class LinkedList<T extends Comparable>
         return length;
     }
 
+
+    // Clear list
     public void clear() {
         head = null;
         tail = null;
+    }
+
+    // Sort list
+    public void sort(Comparator<T> comparator) {
+        if (isEmpty() || length() == 1) {
+            // Already sorted or nothing to sort
+            return;
+        }
+
+        boolean swapped;
+        LinkedNode<T> lastNode = null;
+
+        do {
+            swapped = false;
+            LinkedNode<T> current = head;
+            LinkedNode<T> next;
+
+            while (current.getNext() != lastNode) {
+                next = current.getNext();
+
+                if (comparator.compare(current.getValue(), next.getValue()) > 0) {
+                    // Swap the nodes
+                    T temp = current.getValue();
+                    current.setValue(next.getValue());
+                    next.setValue(temp);
+                    swapped = true;
+                }
+
+                current = next;
+            }
+            lastNode = current;
+        } while (swapped);
     }
 }
