@@ -1,7 +1,10 @@
 package group1.util.lists;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class LinkedList<T extends Comparable> implements ListAddable<T>
 {
@@ -25,7 +28,33 @@ public class LinkedList<T extends Comparable> implements ListAddable<T>
             tail = node;
         }
     }
+    
+    public void addToHead(T t)
+    {
+        if (isEmpty()) add(t);
+        else
+        {
+            LinkedNode<T> node = new LinkedNode<>(t, null);
+            node.setNext(head);
+            head.setPrev(node);
+            head = node;
+        }
+    }
 
+    public void addAfter(int k, T t) 
+    {
+        if (!(k < count())) 
+        {
+            // Invalid index
+            throw new IndexOutOfBoundsException(String.format("Index %d was beyond the range of the list [0, %d].", k, count() - 1));
+        }
+
+        LinkedNode kNode = get(k);
+        LinkedNode newNode = new LinkedNode(t, null);
+
+        if (kNode.getNext() != null) newNode.setNext(kNode.getNext());
+        kNode.setNext(newNode);
+    }    
 
     // Delete Object
 //    public void delete(T t) {
@@ -45,6 +74,36 @@ public class LinkedList<T extends Comparable> implements ListAddable<T>
 //
 //    }
 
+    public void delete(Function<T, Boolean> comparator)
+    {
+        if (isEmpty()) return;
+        
+        LinkedNode<T> node = head;
+        while (node != null)
+        {
+            if (comparator.apply(node.getValue()))
+            {
+                if (node == head)
+                {
+                    head = null;
+                    return;
+                }
+                else
+                {
+                    LinkedNode prev = node.getPrev();
+                    LinkedNode next = node.getNext();
+                    if (prev != null) prev.setNext(next);
+                    if (next != null) next.setPrev(prev);
+                }
+            }
+            node = node.getNext();
+        }
+    }
+    public void delete(T t)
+    {
+        delete((v) -> v.compareTo(t) == 0);
+    }
+    
     // Delete by index
     public void delete(int k) 
     {
@@ -62,10 +121,17 @@ public class LinkedList<T extends Comparable> implements ListAddable<T>
             current++;
         }
         
-        LinkedNode prev = node.getPrev();
-        LinkedNode next = node.getNext();
-        if (prev != null) prev.setNext(next);
-        if (next != null) next.setPrev(prev);
+        if (node == head)
+        {
+            head = null;
+        }
+        else
+        {
+            LinkedNode prev = node.getPrev();
+            LinkedNode next = node.getNext();
+            if (prev != null) prev.setNext(next);
+            if (next != null) next.setPrev(prev);
+        }
     }
 
     // Alternative implementation
@@ -74,42 +140,55 @@ public class LinkedList<T extends Comparable> implements ListAddable<T>
 //    }
 
     // Search Object
-    public <U extends Comparable> LinkedNode<T> find(U t, Function<T, U> selector) 
+    public List<LinkedNode<T>> find(Function<T, Boolean> evaluator) 
     {
+        ArrayList<LinkedNode<T>> found = new ArrayList<>();
+        
         if (isEmpty()) 
-            return null;
+            return found;
         
         LinkedNode<T> node = head;
         while (node != null) 
         {
-            if (selector.apply(node.getValue()).compareTo(t) == 0) 
+            if (evaluator.apply(node.getValue())) 
             {
-                return node;
+                found.add(node);
             }
             node = node.getNext();
         }
-        return null;
+        return found;
     }
-    public LinkedNode<T> find(T t)
+    public List<T> findValues(Function<T, Boolean> evaluator) 
     {
-        return find(t, (v) -> v);
+        return find(evaluator).stream().map(x -> x.getValue()).collect(Collectors.toList());
     }
-
-    public void addAfter(int k, T t) 
+    public List<LinkedNode<T>> find(T t)
     {
-        if (!(k < count())) 
+        return find((v) -> v.compareTo(t) == 0);
+    }
+    
+    public int findIndexOf(Function<T, Boolean> evaluator) 
+    {
+        if (isEmpty()) return -1;
+        
+        LinkedNode<T> node = head;
+        int index = 0;
+        while (node != null) 
         {
-            // Invalid index
-            throw new IndexOutOfBoundsException(String.format("Index %d was beyond the range of the list [0, %d].", k, count() - 1));
+            if (evaluator.apply(node.getValue())) 
+            {
+                break;
+            }
+            node = node.getNext();
+            index++;
         }
         
-        LinkedNode kNode = get(k);
-        LinkedNode newNode = new LinkedNode(t, null);
-        
-        if (kNode.getNext() != null) newNode.setNext(kNode.getNext());
-        kNode.setNext(newNode);
+        return index;
     }
-
+    public int findIndexOf(T t)
+    {
+        return findIndexOf((v) -> v.compareTo(t) == 0);
+    }
 
     // Display Objects
     public void display() 
@@ -148,7 +227,7 @@ public class LinkedList<T extends Comparable> implements ListAddable<T>
         return head == null;
     }
 
-    public LinkedNode get(int i) 
+    public LinkedNode<T> get(int i) 
     {
         if(i > count()) return null;
         LinkedNode node = head;
@@ -172,5 +251,46 @@ public class LinkedList<T extends Comparable> implements ListAddable<T>
             node = node.getNext();
         }
         return length;
-    }    
+    }
+    
+    public void sort(Comparator<T> comparator)
+    {
+        if (isEmpty() || count() == 1)
+        {
+            // Already sorted or nothing to sort
+            return;
+        }
+
+        boolean swapped;
+        LinkedNode<T> lastNode = null;
+
+        do
+        {
+            swapped = false;
+            LinkedNode<T> current = head;
+            LinkedNode<T> next;
+
+            while (current.getNext() != lastNode)
+            {
+                next = current.getNext();
+
+                if (comparator.compare(current.getValue(), next.getValue()) > 0)
+                {
+                    // Swap the nodes
+                    T temp = current.getValue();
+                    current.setValue(next.getValue());
+                    next.setValue(temp);
+                    swapped = true;
+                }
+
+                current = next;
+            }
+            lastNode = current;
+        } 
+        while (swapped);
+    }
+    public void sort()
+    {
+        sort((a, b) -> a.compareTo(b));
+    }
 }

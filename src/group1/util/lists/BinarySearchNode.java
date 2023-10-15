@@ -1,38 +1,44 @@
 package group1.util.lists;
 
+import java.util.ArrayList;
 import java.util.function.Function;
 
-public class BinarySearchNode<T extends Comparable> implements ListAddable<T>
+public class BinarySearchNode<T extends Comparable>
 {
     private T value;
     private BinarySearchNode<T> left;
     private BinarySearchNode<T> right;
 
-    public <U extends Comparable> void add(T value, Function<T, U> selector)
+    public BinarySearchNode(T value)
     {
-        throw new UnsupportedOperationException();
+        this.value = value;
+        left = right = null;
     }
-    @Override
-    public void add(T value)
+
+    public T getValue()
     {
-        add(value, (v) -> v);
+        return value;
     }
-    
-    public <U extends Comparable> BinarySearchNode<T> find(T value, Function<T, U> selector)
+    public void setValue(T value)
     {
-        throw new UnsupportedOperationException();
+        this.value = value;
     }
-    public BinarySearchNode<T> find(T value) 
+
+    public BinarySearchNode<T> getLeft()
     {
-        return find(value, (v) -> v);
+        return left;
     }
-    
-    public <U extends Comparable> void delete(T value, Function<T, U> selector)
+    public void setLeft(BinarySearchNode<T> left)
     {
-        throw new UnsupportedOperationException();
+        this.left = left;
     }
-    public void delete(T value) 
+
+    public BinarySearchNode<T> getRight()
     {
-        find(value, (v) -> v);
+        return right;
+    }
+    public void setRight(BinarySearchNode<T> right)
+    {
+        this.right = right;
     }
 }

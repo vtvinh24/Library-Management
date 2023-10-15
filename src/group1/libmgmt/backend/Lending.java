@@ -10,7 +10,8 @@ public final class Lending implements StringListSerializable, Comparable<Lending
 {
     private String bookCode;
     private String readerCode;
-    private int state;
+    // initially not delivered
+    private int state = NOT_DELIVERED;
     
     public static final int NOT_DELIVERED = 1;
     public static final int NOT_RETURNED = 2;
@@ -58,12 +59,15 @@ public final class Lending implements StringListSerializable, Comparable<Lending
     }
     public void setState(int state)
     {
+        throwIfInvalidState(state);
+        this.state = state;
+    }
+    public static void throwIfInvalidState(int state)
+    {
         if (state < 1 || state > 3)
         {
             throw new IllegalArgumentException("Invalid lending state.");
         }
-        
-        this.state = state;
     }
     public static String stateToString(int state)
     {
@@ -112,8 +116,8 @@ public final class Lending implements StringListSerializable, Comparable<Lending
             throw new UnsupportedOperationException(String.format("Cannot compare objects of different classes (%s vs %s).", this.getClass().getName(), other.getClass().getName()));
         }
         
-        int reader = this.getReaderCode().compareTo(other.getReaderCode());
+        int reader = this.getBookCode().compareTo(other.getBookCode());
         if (reader != 0) return reader;
-        return this.getBookCode().compareTo(other.getBookCode());
+        return this.getReaderCode().compareTo(other.getReaderCode());
     }
 }
