@@ -80,7 +80,7 @@ public final class Book extends CodeDiscriminated implements StringListSerializa
         }        
         if (lent > quantity)
         {
-            throw new IllegalArgumentException("Not enough copies to maintain lendings.");
+            throw new IllegalArgumentException("Not enough copies to maintain current lendings.");
         }        
         this.quantity = quantity;
     }
@@ -113,6 +113,10 @@ public final class Book extends CodeDiscriminated implements StringListSerializa
     public boolean isLendable()
     {
         return this.getQuantity() > this.getLent();
+    }
+    public boolean isReturnable()
+    {
+        return this.getLent() > 0;
     }
     
     public double getValue()

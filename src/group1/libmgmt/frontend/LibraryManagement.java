@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import group1.util.lists.LinkedNode;
 import group1.util.lists.ListAddable;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -718,9 +719,10 @@ public class LibraryManagement
                     {
                         throw new IllegalArgumentException(String.format("A lending contains a non-existent book (%s)", l.getBookCode()));
                     }
-                    if (l.getState() == Lending.NOT_RETURNED)
+                    switch (l.getState())
                     {
-                        target.hasBeenLent();
+                        case Lending.NOT_RETURNED:  target.hasBeenLent(); break;
+                        case Lending.RETURNED: target.hasBeenReturned(); break;
                     }
                 }
 
@@ -1244,22 +1246,66 @@ public class LibraryManagement
         ));
         if (lendingState.getValue() == null) lendingState.setValue(l.getState());
 
-        System.out.println("Available books:");
-        printBooks(traverseBooks());
+
+        List<Book> availableBooks = new ArrayList<>();
+        switch (lendingState.getValue())
+        {
+            case Lending.NOT_DELIVERED:
+            {
+                availableBooks.addAll(traverseBooks());
+                if (availableBooks.isEmpty())
+                {
+                    System.out.println("There are no books to prepare for lending!");
+                    return false;
+                }
+                break;
+            }
+            case Lending.NOT_RETURNED:
+            {
+                availableBooks.addAll(findBooks(x -> x.isLendable()));
+                if (availableBooks.isEmpty())
+                {
+                    System.out.println("There are no books in stock for lending!");
+                    return false;
+                }
+                break;
+            }
+            case Lending.RETURNED:
+            {
+                availableBooks.addAll(findBooks(x -> x.isReturnable()));
+                if (availableBooks.isEmpty())
+                {
+                    System.out.println("There are no books that were lent!");
+                    return false;
+                }
+                break;
+            }
+        }
+        System.out.println("");
+        System.out.println("Available books:");        
+        printBooks(availableBooks);
         boolean success = Helpers.validatedInputLoop
         (
             "Enter lending's book code: ",
             (s) ->
             {
                 Box<String> code = new Box(s.toUpperCase());
-                if (s.isEmpty() && editing) code.setValue(l.getBookCode());
+                boolean kept = (s.isEmpty() && editing);
+                if (kept) code.setValue(l.getBookCode());
 
-                Book newBook = getBookByCode(code.getValue());
-                if (newBook == null)
+                Optional<Book> selected = availableBooks.stream().filter(x -> x.getCode().equals(code.getValue())).findFirst();
+                if (!selected.isPresent())
                 {
-                    throw new IllegalArgumentException("This code does not belong to any books.");
+                    if (kept)
+                    {
+                        System.out.println("The selected lending state cannot be applied to the old book.");
+                        return false;
+                    }
+                    throw new IllegalArgumentException("This code does not belong to any applicable books.");
                 }
-
+                
+                Book newBook = selected.get();
+                /*
                 if (lendingState.getValue() == Lending.NOT_RETURNED && !newBook.isLendable())
                 {
                     // do not give an opportunity to retry as there could be a case
@@ -1268,14 +1314,19 @@ public class LibraryManagement
                     System.out.println("This book is out of stock!");
                     return false;
                 }
+                */
 
                 if (editing)
                 {
-                    // if we're changing the book then the old book needs to be returned if necessary
-                    // or if we're changing lending states
-                    if (l.getState() == Lending.NOT_RETURNED && (!l.getBookCode().equals(newBook.getCode()) || lendingState.getValue() != Lending.NOT_RETURNED))
+                    // the lending previously indicated a decrease in available stock
+                    if (l.getState() == Lending.NOT_RETURNED)
                     {
-                        getBookByCode(l.getBookCode()).hasBeenReturned();
+                        // if we're changing books, the old book will need to be re-stocked
+                        // else this book has been returned to the library
+                        if (!l.getBookCode().equals(newBook.getCode()) || lendingState.getValue() != Lending.NOT_RETURNED)
+                        {
+                            getBookByCode(l.getBookCode()).hasBeenReturned();
+                        }
                     }
                 }
 
