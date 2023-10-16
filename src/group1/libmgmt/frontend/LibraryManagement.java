@@ -1149,6 +1149,7 @@ public class LibraryManagement
             System.out.println("Updating:");
             printBooks(Helpers.createArrayList(b));
             System.out.println("Enter nothing to maintain the requested information of the book.");
+            System.out.println("");
         }
         Helpers.validatedInputLoop
         (
@@ -1194,6 +1195,7 @@ public class LibraryManagement
             System.out.println("Updating:");
             printReaders(Helpers.createArrayList(r));
             System.out.println("Enter nothing to maintain the requested information of the reader.");
+            System.out.println("");
         }
         Helpers.validatedInputLoop
         (
@@ -1234,6 +1236,7 @@ public class LibraryManagement
             System.out.println("Updating:");
             printLendings(Helpers.createArrayList(l));
             System.out.println("Enter nothing to maintain the requested information of the lending.");
+            System.out.println("");
         }
         
         System.out.println("Available books:");
