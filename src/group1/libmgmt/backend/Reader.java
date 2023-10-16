@@ -38,7 +38,7 @@ public final class Reader extends CodeDiscriminated implements StringListSeriali
         code = code.toUpperCase();
         if (!Helpers.matchesRegex(code, "^R[0-9]{6}$"))
         {
-            throw new IllegalArgumentException("Reader code must be the letter R followed by 6 numbers.");
+            throw new IllegalArgumentException("Reader code must be the letter R followed by 6 digits.");
         }
     }    
 

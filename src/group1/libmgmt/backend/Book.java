@@ -40,7 +40,7 @@ public final class Book extends CodeDiscriminated implements StringListSerializa
         Helpers.throwIfNullOrWhitespace(code, "Book code");
         if (!Helpers.matchesRegex(code, "^B[0-9]{6}$"))
         {
-            throw new IllegalArgumentException("Book code must be the letter B followed by 6 numbers.");
+            throw new IllegalArgumentException("Book code must be the letter B followed by 6 digits.");
         }
     }
 
