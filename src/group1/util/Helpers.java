@@ -176,7 +176,7 @@ public final class Helpers
     {
         return Helpers.validatedInputLoop
         (
-            question + " [Y/N]", 
+            Helpers.trimEnd(question, ' ') + " [Y/N]", 
             (s) -> 
             {
                 Helpers.throwIfNullOrWhitespace(s, "Input");

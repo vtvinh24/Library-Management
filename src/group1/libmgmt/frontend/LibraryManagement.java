@@ -33,7 +33,7 @@ public class LibraryManagement
     private String outputPath = "";
     private boolean dirty = false;
 
-    private static final boolean BOOKS_BST = true;
+    private static final boolean BOOKS_BST = false;
     
     private final LinkedList<Book> llBooks = new LinkedList<>();
     private final BinarySearchTree<Book> bstBooks = new BinarySearchTree<>();
@@ -52,6 +52,7 @@ public class LibraryManagement
         booksTable.addColumn(10, "Price");        
         booksTable.addColumn(5, "Quantity");        
         booksTable.addColumn(5, "Lent");       
+        booksTable.addColumn(10, "Value");       
         
         readersTable.addColumn(3, "#");
         readersTable.addColumn(7, "Code");
@@ -174,6 +175,7 @@ public class LibraryManagement
                             }
                         }
                     }
+                    else llBooks.add(b);
                 }
                 else
                 {
@@ -261,6 +263,7 @@ public class LibraryManagement
                 if (candidates.isEmpty())
                 {
                     System.out.printf("No %ss to update!\n", name);
+                    System.out.println("");
                     return;
                 }
                 
@@ -272,6 +275,7 @@ public class LibraryManagement
                 if (candidates.isEmpty()) 
                 {
                     System.out.printf("Found no %ss to update!\n", name);
+                    System.out.println("");
                     return;
                 }
                 
@@ -281,6 +285,8 @@ public class LibraryManagement
                 {
                     askDetailsFunc.accept(s);
                     System.out.println("");
+                    
+                    dirty = true;
                 }              
             }
         }
@@ -323,8 +329,6 @@ public class LibraryManagement
                 );
             }
         }
-
-        dirty = true;
     }
     
     private void sort()
@@ -338,25 +342,33 @@ public class LibraryManagement
         {
             case 1:
             {
-                if (BOOKS_BST)
+                printHeading(3, "Sorting/Balancing Books");
+                if (countBooks() == 0)
                 {
-                    // 2.1.8
-                    printHeading(3, "Balancing Books");
-                    bstBooks.balance();
-                }
+                    System.out.println("No Books to balance!");
+                }      
                 else
                 {
-                    // 1.1.7
-                    printHeading(3, "Sorting Books");
-                    llBooks.sort();
+                    if (BOOKS_BST) bstBooks.balance(); // 2.1.8
+                    else llBooks.sort();  // 1.1.7
+                    dirty = true; 
                 }
+
 
                 break;
             }
             case 2:
             {
                 printHeading(3, "Sorting Readers");
-                readers.sort();
+                if (readers.count() == 0)
+                {
+                    System.out.println("No Readers to sort!");
+                }
+                else
+                {
+                    readers.sort();  
+                    dirty = true; 
+                }
                 break;
             }
             case 3:
@@ -364,13 +376,20 @@ public class LibraryManagement
                 // 2.3.3
                 // 1.3.3
                 printHeading(3, "Sorting Lendings");
-                lendings.sort();
+                if (lendings.count() == 0)
+                {
+                    System.out.println("No Lendings to sort!");
+                }
+                else
+                {
+                    lendings.sort();
+                    dirty = true;                    
+                }
                 break;
             }            
         }
         
         System.out.println("Sorting/Balancing complete.");
-        dirty = true;
         System.out.println("");
     }
 
@@ -418,6 +437,7 @@ public class LibraryManagement
                 
                 List<T> selected = askToSelect(candidates, printFunc);
                 deleteFunc.accept(selected);
+                dirty = true;
             }
             
             public void deleteLending(Lending target)
@@ -529,7 +549,6 @@ public class LibraryManagement
             }
         }
 
-        dirty = true;
         System.out.println("");
     }
 
@@ -537,10 +556,18 @@ public class LibraryManagement
     {
         printHeading(2, "Saving data");
 
+        if (!outputPath.equals(""))
+        {
+            if (!Helpers.askYesNo("Would you like to save to the same location?"))
+            {
+                outputPath = Helpers.validatedInputLoop("Please enter the new path: ", (s) -> s);
+            }
+        }
+        
         File output = new File(outputPath);
         if (!output.isDirectory() || !output.exists())
         {
-            System.out.println("Existing output path is either missing or invalid.");
+            System.out.println("Output path is either missing or invalid.");
             output = Helpers.validatedInputLoop
             (
                 "Please enter the output folder path (enter '.' to use this program's directory): ",
@@ -732,9 +759,9 @@ public class LibraryManagement
         if (BOOKS_BST)
         {
             // 2.1.3
-            printBooks(bstBooks.inorder());
+            //printBooks(bstBooks.inorder());
             // 2.1.4
-            //printBooks(bstBooks.levelOrder());
+            printBooks(bstBooks.levelOrder());
         }
         else
         {
@@ -746,10 +773,11 @@ public class LibraryManagement
         {
             "",
             "Totals",
-            allBooks.size(),
-            String.format("%.2f books", allBooks.stream().collect(Collectors.summingDouble(x -> x.getPrice()))),
+            String.format("%d titles", allBooks.size()),
+            String.format("%.2f", allBooks.stream().collect(Collectors.summingDouble(x -> x.getPrice()))),
             allBooks.stream().collect(Collectors.summingInt(x -> x.getQuantity())),
             allBooks.stream().collect(Collectors.summingInt(x -> x.getLent())),
+            String.format("%.2f", allBooks.stream().collect(Collectors.summingDouble(x -> x.getValue())))
         }));
         System.out.println("");
         
@@ -838,11 +866,11 @@ public class LibraryManagement
     {
        if (readers.count() == 0)
         {
-            System.out.println("No books to search for!");
+            System.out.println("No readers to search for!");
             return null;
         }
         
-        System.out.println("Would you like to search a book by: ");
+        System.out.println("Would you like to search a reader by: ");
         System.out.println("1. Code");
         System.out.println("2. Name");
         System.out.println("3. Birth year period");
@@ -1006,7 +1034,8 @@ public class LibraryManagement
                 x.getTitle(),
                 String.format("%.2f", x.getPrice()),
                 Integer.toString(x.getQuantity()),
-                Integer.toString(x.getLent())
+                Integer.toString(x.getLent()),
+                String.format("%.2f", x.getValue())
             });
         }
         System.out.print(booksTable.compose(table.toArray(new String[][]{})));
@@ -1053,7 +1082,6 @@ public class LibraryManagement
                 System.out.println("");
                 save();
             }
-            this.dirty = false;
         }
     }
 
@@ -1067,9 +1095,9 @@ public class LibraryManagement
         }
         else
         {
-            LinkedNode<Book> result = llBooks.find((v) -> v.getCode().compareTo(code) == 0).get(0);
-            if (result == null) return null;
-            else return result.getValue();
+            List<LinkedNode<Book>> result = llBooks.find((v) -> v.getCode().compareTo(code) == 0);
+            if (result.isEmpty()) return null;
+            else return result.get(0).getValue();
         }
     }
     private Reader getReaderByCode(String code)
@@ -1082,11 +1110,11 @@ public class LibraryManagement
 
     private int askWhichRecord()
     {
-        System.out.println("Please choose a record to update:");
+        System.out.println("Please select a collection:");
         System.out.println("1. Books");
         System.out.println("2. Readers");
         System.out.println("3. Lendings");
-        return Helpers.askInteger("Enter your choice", 1, 3);
+        return Helpers.askInteger("Enter your choice: ", 1, 3);
     }
 
     private void askBookDetails(Book b, boolean editing)
@@ -1198,8 +1226,8 @@ public class LibraryManagement
         ));
         if (lendingState.getValue() == null) lendingState.setValue(l.getState());
         
-        System.out.println("Books still in-stock: ");
-        printBooks(findBooks(x -> x.isLendable()));
+        System.out.println("Available books:");
+        printBooks(traverseBooks());
         boolean success = Helpers.validatedInputLoop
         (
             "Enter lending's book code: ",

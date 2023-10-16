@@ -110,10 +110,14 @@ public final class Book extends CodeDiscriminated implements StringListSerializa
     {
         this.setLent(this.getLent() - 1);
     }
-    
     public boolean isLendable()
     {
         return this.getQuantity() > this.getLent();
+    }
+    
+    public double getValue()
+    {
+        return this.getPrice() * this.getQuantity();
     }
     
     @Override
