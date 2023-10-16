@@ -129,6 +129,7 @@ public final class Helpers
         return elements;
     }
     
+    private static final int REPEATABLE_QUESTION_LENGTH_LIMIT = 50;
     public static <T> T validatedInputLoop
     (
         String question,
@@ -137,6 +138,11 @@ public final class Helpers
     {
         if (!question.endsWith(" ")) question += " ";
         
+        if (question.length() >= REPEATABLE_QUESTION_LENGTH_LIMIT)
+        {
+            System.out.println(question);
+            question = "Input: ";
+        }
         while (true)
         {
             System.out.printf(question);
@@ -200,6 +206,19 @@ public final class Helpers
         }
         
         return ret;
+    }
+    public static <T> boolean anyMatch(List<T> list, Function<T, Boolean> evaluator)
+    {
+        return list.stream().anyMatch(x -> evaluator.apply(x));
+    }
+    public static <U, T extends List<U>> T reversed(T input)
+    {
+        ArrayList<U> reversedList = new ArrayList<>();
+        for (int i = input.size() - 1; i >= 0; i--)
+        {
+            reversedList.add(input.get(i));
+        }
+        return (T)reversedList;
     }
     
     public static ArrayList<Integer> generateRange(int from, int to)

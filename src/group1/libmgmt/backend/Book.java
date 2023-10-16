@@ -76,7 +76,7 @@ public final class Book extends CodeDiscriminated implements StringListSerializa
     {
         if (quantity < 0)
         {
-            throw new IllegalArgumentException("A book cannot be negatively stocked.");
+            throw new IllegalArgumentException("Book quantity cannot be lower than 0.");
         }        
         if (lent > quantity)
         {
@@ -93,7 +93,7 @@ public final class Book extends CodeDiscriminated implements StringListSerializa
     {
         if (lent < 0)
         {
-            throw new IllegalArgumentException("A book cannot be lent negative times.");
+            throw new IllegalArgumentException("Book lent count cannot be lower than 0.");
         }
         if (lent > quantity)
         {

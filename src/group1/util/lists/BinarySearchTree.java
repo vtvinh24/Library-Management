@@ -117,8 +117,9 @@ public class BinarySearchTree<T extends Comparable> implements ListAddable<T>
         {
             for (BinarySearchNode<T> n : currentLevel)
             {
-                result.add((T) n.getValue());
-                if (n.getValue() != null)
+                result.add(n.getValue());
+                
+                if (n.getLeft() != null)
                 {
                     nextLevel.add(n.getLeft());
                 }
@@ -136,7 +137,7 @@ public class BinarySearchTree<T extends Comparable> implements ListAddable<T>
     }
     public ArrayList<T> levelOrder()
     {
-        if (root != null)
+        if (root == null)
         {
             return new ArrayList<>();
         }

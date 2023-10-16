@@ -13,9 +13,9 @@ public final class Lending implements StringListSerializable, Comparable<Lending
     // initially not delivered
     private int state = NOT_DELIVERED;
     
-    public static final int NOT_DELIVERED = 1;
-    public static final int NOT_RETURNED = 2;
-    public static final int RETURNED = 3;
+    public static final int NOT_DELIVERED = 0;
+    public static final int NOT_RETURNED = 1;
+    public static final int RETURNED = 2;
 
     public Lending() {;}
     public Lending(String bookCode, String readerCode, int state)
@@ -64,7 +64,7 @@ public final class Lending implements StringListSerializable, Comparable<Lending
     }
     public static void throwIfInvalidState(int state)
     {
-        if (state < 1 || state > 3)
+        if (state < 0 || state > 2)
         {
             throw new IllegalArgumentException("Invalid lending state.");
         }
@@ -119,5 +119,14 @@ public final class Lending implements StringListSerializable, Comparable<Lending
         int reader = this.getBookCode().compareTo(other.getBookCode());
         if (reader != 0) return reader;
         return this.getReaderCode().compareTo(other.getReaderCode());
+    }
+    
+    public boolean isSameBookAndReader(Lending other)
+    {
+        return other.getBookCode().equals(this.getBookCode()) && other.getReaderCode().equals(this.getReaderCode());
+    }
+    public boolean isSameBookAndReader(String bookCode, String readerCode)
+    {
+        return this.getBookCode().equals(bookCode) && this.getReaderCode().equals(readerCode);
     }
 }

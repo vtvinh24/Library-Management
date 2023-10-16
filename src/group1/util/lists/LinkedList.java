@@ -99,6 +99,10 @@ public class LinkedList<T extends Comparable> implements ListAddable<T>
             node = node.getNext();
         }
     }
+    public void deleteObject(T t)
+    {
+        delete((v) -> v.equals(t));
+    }
     public void delete(T t)
     {
         delete((v) -> v.compareTo(t) == 0);

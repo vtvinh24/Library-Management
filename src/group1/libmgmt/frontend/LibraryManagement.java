@@ -24,6 +24,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import group1.util.lists.LinkedNode;
 import group1.util.lists.ListAddable;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -34,7 +36,7 @@ public class LibraryManagement
     private String outputPath = "";
     private boolean dirty = false;
 
-    private static final boolean BOOKS_BST = false;
+    private static final boolean BOOKS_BST = true;
 
     private final LinkedList<Book> llBooks = new LinkedList<>();
     private final BinarySearchTree<Book> bstBooks = new BinarySearchTree<>();
@@ -72,7 +74,7 @@ public class LibraryManagement
             System.out.println("1. Load data");
             System.out.println("2. Save data");
             System.out.println("3. Add data");
-            System.out.println("4. Update data");
+            System.out.println("4. Changing data");
             System.out.println("5. Sort/Balance data");
             System.out.println("6. Delete data");
             System.out.println("7. Find data");
@@ -106,7 +108,7 @@ public class LibraryManagement
                 }
                 case 4:
                 {
-                    update();
+                    change();
                     break;
                 }
                 case 5:
@@ -244,9 +246,9 @@ public class LibraryManagement
         System.out.println("");
     }
 
-    private void update()
+    private void change()
     {
-        printHeading(2, "Updating data");
+        printHeading(2, "Changing data");
 
         int option = askWhichRecord();
         System.out.println("");
@@ -267,22 +269,22 @@ public class LibraryManagement
                 Consumer<T> askDetailsFunc
             )
             {
-                printHeading(3, String.format("Updating %ss", name));
+                printHeading(3, String.format("Changing %ss", name));
 
                 if (candidates.isEmpty())
                 {
-                    System.out.printf("No %ss to update!\n", name);
+                    System.out.printf("No %ss to change!\n", name);
                     return;
                 }
 
-                if (Helpers.askYesNo(String.format("Would you like to search for the %ss to update?", name)))
+                if (Helpers.askYesNo(String.format("Would you like to search for the %ss to change?", name)))
                 {
                     candidates = narrowFunc.get();
                 }
                 System.out.println("");
                 if (candidates.isEmpty())
                 {
-                    System.out.printf("Found no %ss to update!\n", name);
+                    System.out.printf("Found no %ss to change!\n", name);
                     return;
                 }
 
@@ -292,11 +294,10 @@ public class LibraryManagement
                 {
                     askDetailsFunc.accept(s);
                     System.out.println("");
-
                     dirty = true;
                 }
 
-                System.out.printf("Successfully updated %s(s).\n", name);
+                System.out.printf("Successfully changed %s(s).\n", name);
             }
         }
 
@@ -336,7 +337,7 @@ public class LibraryManagement
                     (l) -> printLendings(l),
                     (b) -> askLendingDetails(b, true)
                 );
-            }
+            }            
         }
         System.out.println("");
     }
@@ -563,7 +564,7 @@ public class LibraryManagement
                         }
                     }
                 );
-            }
+            }            
         }
         System.out.println("");
     }
@@ -708,6 +709,7 @@ public class LibraryManagement
                     throw new IllegalArgumentException(String.format("Error: %s.", Helpers.trimEnd(e.getMessage(), '.')));
                 }
 
+                HashMap<String, ArrayList<String>> bookOwnership = new HashMap<>();
                 for (Lending l : lendings.traverse())
                 {
                     if (getReaderByCode(l.getReaderCode()) == null)
@@ -719,10 +721,13 @@ public class LibraryManagement
                     {
                         throw new IllegalArgumentException(String.format("A lending contains a non-existent book (%s)", l.getBookCode()));
                     }
-                    switch (l.getState())
+                    
+                    // we only care about books still in posession of readers
+                    // as returned books don't necessarily represent stock
+                    // due to possible slimming of book stock
+                    if (l.getState() == Lending.NOT_RETURNED) 
                     {
-                        case Lending.NOT_RETURNED:  target.hasBeenLent(); break;
-                        case Lending.RETURNED: target.hasBeenReturned(); break;
+                        target.hasBeenLent();
                     }
                 }
 
@@ -978,7 +983,7 @@ public class LibraryManagement
             case 4:
             {
                 printLendingStates();
-                int state = Helpers.askInteger("Enter lending state: ", 1, 3);
+                int state = Helpers.askInteger("Enter lending state: ", 0, 2);
                 selector.setValue((b) -> b.getState() == state);
                 break;
             }
@@ -1230,138 +1235,151 @@ public class LibraryManagement
             printLendings(Helpers.createArrayList(l));
             System.out.println("Enter nothing to maintain the requested information of the lending.");
         }
-
-        printLendingStates();
-        Box<Integer> lendingState = new Box<>(Helpers.validatedInputLoop
+        
+        System.out.println("Available books:");
+        printBooks(traverseBooks());
+        Book book = Helpers.validatedInputLoop
         (
-            "Enter lending's state: ",
-            (s) ->
-            {
-                if (s.isEmpty() && editing) return null;
-
-                int ret = Integer.parseInt(s);
-                Lending.throwIfInvalidState(ret);
-                return ret;
-            }
-        ));
-        if (lendingState.getValue() == null) lendingState.setValue(l.getState());
-
-
-        List<Book> availableBooks = new ArrayList<>();
-        switch (lendingState.getValue())
-        {
-            case Lending.NOT_DELIVERED:
-            {
-                availableBooks.addAll(traverseBooks());
-                if (availableBooks.isEmpty())
-                {
-                    System.out.println("There are no books to prepare for lending!");
-                    return false;
-                }
-                break;
-            }
-            case Lending.NOT_RETURNED:
-            {
-                availableBooks.addAll(findBooks(x -> x.isLendable()));
-                if (availableBooks.isEmpty())
-                {
-                    System.out.println("There are no books in stock for lending!");
-                    return false;
-                }
-                break;
-            }
-            case Lending.RETURNED:
-            {
-                availableBooks.addAll(findBooks(x -> x.isReturnable()));
-                if (availableBooks.isEmpty())
-                {
-                    System.out.println("There are no books that were lent!");
-                    return false;
-                }
-                break;
-            }
-        }
-        System.out.println("");
-        System.out.println("Available books:");        
-        printBooks(availableBooks);
-        boolean success = Helpers.validatedInputLoop
-        (
-            "Enter lending's book code: ",
+            "Enter lending's book code: ", 
             (s) ->
             {
                 Box<String> code = new Box(s.toUpperCase());
-                boolean kept = (s.isEmpty() && editing);
-                if (kept) code.setValue(l.getBookCode());
-
-                Optional<Book> selected = availableBooks.stream().filter(x -> x.getCode().equals(code.getValue())).findFirst();
-                if (!selected.isPresent())
-                {
-                    if (kept)
-                    {
-                        System.out.println("The selected lending state cannot be applied to the old book.");
-                        return false;
-                    }
-                    throw new IllegalArgumentException("This code does not belong to any applicable books.");
-                }
-                
-                Book newBook = selected.get();
-                /*
-                if (lendingState.getValue() == Lending.NOT_RETURNED && !newBook.isLendable())
-                {
-                    // do not give an opportunity to retry as there could be a case
-                    // where there are no lendable books left, and the user gets stuck
-                    // an infinite input loop until they select an unfavorible option
-                    System.out.println("This book is out of stock!");
-                    return false;
-                }
-                */
-
-                if (editing)
-                {
-                    // the lending previously indicated a decrease in available stock
-                    if (l.getState() == Lending.NOT_RETURNED)
-                    {
-                        // if we're changing books, the old book will need to be re-stocked
-                        // else this book has been returned to the library
-                        if (!l.getBookCode().equals(newBook.getCode()) || lendingState.getValue() != Lending.NOT_RETURNED)
-                        {
-                            getBookByCode(l.getBookCode()).hasBeenReturned();
-                        }
-                    }
-                }
-
-                if (lendingState.getValue() == Lending.NOT_RETURNED)
-                {
-                    newBook.hasBeenLent();
-                }
-                l.setBookCode(newBook.getCode());
-
-                return true;
+                if (editing && s.isEmpty()) code.setValue(l.getBookCode());
+                Book.throwIfInvalidCode(code.getValue());
+                return getBookByCode(code.getValue());
             }
         );
-        if (!success) return false;
-
+        if (book == null)
+        {
+            System.out.println("No book exists with such a code.");
+            return false;
+        }
+        
         System.out.println("");
         System.out.println("Readers: ");
         printReaders(readers.traverse());
-        Helpers.validatedInputLoop
+        Reader reader = Helpers.validatedInputLoop
         (
-            "Enter lending's reader code: ",
-            (s) ->
+            "Enter lending's reader code: ", 
+            (s) -> 
             {
-                if (s.isEmpty() && editing) return null;
-                if (!readers.traverse().stream().anyMatch(x -> x.getCode().equals(s.toUpperCase())))
-                {
-                    throw new IllegalArgumentException("This code does not belong to any reader.");
-                }
-
-                l.setReaderCode(s);
-                return null;
+                Box<String> code = new Box(s.toUpperCase());
+                if (editing && s.isEmpty()) code.setValue(l.getReaderCode());
+                Reader.throwIfInvalidCode(code.getValue());
+                return getReaderByCode(code.getValue());
             }
         );
+        if (reader == null)
+        {
+            System.out.println("No reader exists with such a code.");
+            return false;
+        }
+        
+        if (!editing)
+        {
+            l.setBookCode(book.getCode());
+            l.setReaderCode(reader.getCode());
 
-        l.setState(lendingState.getValue());
+            if (book.isLendable())
+            {
+                book.hasBeenLent();
+                l.setState(Lending.NOT_RETURNED);
+            }
+            else
+            {
+                System.out.println("");
+                System.out.println("This book is out of stock, this lending will be marked as undelivered");
+                l.setState(Lending.NOT_DELIVERED);
+            }
+            
+            return true;
+        }
+        else
+        {
+            System.out.println("");
+            printLendingStates();
+            int state = Helpers.validatedInputLoop
+            (
+                "Enter lending's reader code: ", 
+                (s) -> 
+                {
+                    if (editing && s.isEmpty()) return l.getState();
+                    int ret = Integer.parseInt(s);
+                    Lending.throwIfInvalidState(ret);
+                    return ret;
+                }
+            );
 
+            // assume the lending takes the book away from the reader
+            if (l.getState() == Lending.NOT_RETURNED)
+            {
+                getBookByCode(l.getBookCode()).hasBeenReturned();
+            }
+            if (state == Lending.NOT_RETURNED)
+            {
+                if (!book.isLendable())
+                {
+                    System.out.println("");
+                    System.out.println("Specified book is out of stock!");
+                    return false;
+                }             
+                book.hasBeenLent();
+            }
+            l.setBookCode(book.getCode());
+            l.setReaderCode(reader.getCode());             
+            l.setState(state);
+        }
+        
+        /*
+        // search previous lendings
+        // if the we find a return lending before a borrowing lending, we know that this reader is eligible for another lending of this book
+        // else, ask if this lending should be marked as a return.
+        ArrayList<Lending> pastLendings = Helpers.reversed(lendings.traverse());
+        boolean stop = false;
+        for (Lending pastLending : pastLendings)
+        {
+            if (pastLending.isSameBookAndReader(l))
+            {
+                switch (l.getState())
+                {
+                    case Lending.NOT_RETURNED:
+                    {
+                        if (Helpers.askYesNo("This reader already has this book, should the new lending be marked as a return?"))
+                        {
+                            book.hasBeenReturned();
+                            l.setState(Lending.RETURNED);
+                            return true;
+                        }
+                        else
+                        {
+                            System.out.println("This reader cannot borrow this book until they return it.");
+                            return false;
+                        }
+                    }
+                    case Lending.RETURNED:
+                    {
+                        stop = true;
+                        break;
+                    }
+                }
+            }
+
+            if (stop) 
+                break;
+        }
+
+        if (!book.isLendable())
+        {
+            System.out.println("This book is currently out of stock. Marking this lending as undelivered.");
+            l.setState(Lending.NOT_DELIVERED);
+        }
+        else
+        {
+            l.setState(Lending.NOT_RETURNED);
+        }
+        return true; 
+        */
+        
         return true;
     }
 
@@ -1390,9 +1408,9 @@ public class LibraryManagement
     private static void printLendingStates()
     {
         System.out.println("Available lending states: ");
-        System.out.printf("1. %s\n", Lending.stateToString(Lending.NOT_DELIVERED));
-        System.out.printf("2. %s\n", Lending.stateToString(Lending.NOT_RETURNED));
-        System.out.printf("3. %s\n", Lending.stateToString(Lending.RETURNED));
+        System.out.printf("0. %s\n", Lending.stateToString(Lending.NOT_DELIVERED));
+        System.out.printf("1. %s\n", Lending.stateToString(Lending.NOT_RETURNED));
+        System.out.printf("2. %s\n", Lending.stateToString(Lending.RETURNED));
     }
 
 
