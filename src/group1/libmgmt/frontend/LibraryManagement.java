@@ -74,7 +74,7 @@ public class LibraryManagement
             System.out.println("1. Load data");
             System.out.println("2. Save data");
             System.out.println("3. Add data");
-            System.out.println("4. Changing data");
+            System.out.println("4. Edit data");
             System.out.println("5. Sort/Balance data");
             System.out.println("6. Delete data");
             System.out.println("7. Find data");
@@ -108,7 +108,7 @@ public class LibraryManagement
                 }
                 case 4:
                 {
-                    change();
+                    edit();
                     break;
                 }
                 case 5:
@@ -246,9 +246,9 @@ public class LibraryManagement
         System.out.println("");
     }
 
-    private void change()
+    private void edit()
     {
-        printHeading(2, "Changing data");
+        printHeading(2, "Editing data");
 
         int option = askWhichRecord();
         System.out.println("");
@@ -269,22 +269,22 @@ public class LibraryManagement
                 Consumer<T> askDetailsFunc
             )
             {
-                printHeading(3, String.format("Changing %ss", name));
+                printHeading(3, String.format("Editing %ss", name));
 
                 if (candidates.isEmpty())
                 {
-                    System.out.printf("No %ss to change!\n", name);
+                    System.out.printf("No %ss to edit!\n", name);
                     return;
                 }
 
-                if (Helpers.askYesNo(String.format("Would you like to search for the %ss to change?", name)))
+                if (Helpers.askYesNo(String.format("Would you like to search for the %ss to edit?", name)))
                 {
                     candidates = narrowFunc.get();
                 }
                 System.out.println("");
                 if (candidates.isEmpty())
                 {
-                    System.out.printf("Found no %ss to change!\n", name);
+                    System.out.printf("Found no %ss to edit!\n", name);
                     return;
                 }
 
@@ -297,7 +297,7 @@ public class LibraryManagement
                     dirty = true;
                 }
 
-                System.out.printf("Successfully changed %s(s).\n", name);
+                System.out.printf("Successfully edited %s(s).\n", name);
             }
         }
 
@@ -969,7 +969,6 @@ public class LibraryManagement
         System.out.println("4. State");
         int choice = Helpers.askInteger("Enter your choice: ", 1, 4);
 
-        System.out.println("");
         Box<Function<Lending, Boolean>> selector = new Box<>(null);
         switch (choice)
         {
@@ -992,6 +991,8 @@ public class LibraryManagement
         List<Lending> results = lendings.findValues(x -> selector.getValue().apply(x));
         if (printResults)
         {
+            System.out.println("");
+
             if (results.isEmpty())
             {
                 System.out.println("Found no lendings.");
@@ -1146,7 +1147,7 @@ public class LibraryManagement
     {
         if (editing)
         {
-            System.out.println("Updating:");
+            System.out.println("C:");
             printBooks(Helpers.createArrayList(b));
             System.out.println("Enter nothing to maintain the requested information of the book.");
             System.out.println("");
@@ -1332,56 +1333,6 @@ public class LibraryManagement
             l.setReaderCode(reader.getCode());             
             l.setState(state);
         }
-        
-        /*
-        // search previous lendings
-        // if the we find a return lending before a borrowing lending, we know that this reader is eligible for another lending of this book
-        // else, ask if this lending should be marked as a return.
-        ArrayList<Lending> pastLendings = Helpers.reversed(lendings.traverse());
-        boolean stop = false;
-        for (Lending pastLending : pastLendings)
-        {
-            if (pastLending.isSameBookAndReader(l))
-            {
-                switch (l.getState())
-                {
-                    case Lending.NOT_RETURNED:
-                    {
-                        if (Helpers.askYesNo("This reader already has this book, should the new lending be marked as a return?"))
-                        {
-                            book.hasBeenReturned();
-                            l.setState(Lending.RETURNED);
-                            return true;
-                        }
-                        else
-                        {
-                            System.out.println("This reader cannot borrow this book until they return it.");
-                            return false;
-                        }
-                    }
-                    case Lending.RETURNED:
-                    {
-                        stop = true;
-                        break;
-                    }
-                }
-            }
-
-            if (stop) 
-                break;
-        }
-
-        if (!book.isLendable())
-        {
-            System.out.println("This book is currently out of stock. Marking this lending as undelivered.");
-            l.setState(Lending.NOT_DELIVERED);
-        }
-        else
-        {
-            l.setState(Lending.NOT_RETURNED);
-        }
-        return true; 
-        */
         
         return true;
     }
