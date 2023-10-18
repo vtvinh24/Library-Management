@@ -686,6 +686,7 @@ public class LibraryManagement
                     if (!file.exists()) 
                     {
                         System.out.printf("%s doesn't exist. Ignoring.\n", path);
+                        errors.setValue(errors.getValue() + 1);
                         return;
                     }
 
@@ -733,12 +734,12 @@ public class LibraryManagement
                 {
                     if (getReaderByCode(l.getReaderCode()) == null)
                     {
-                        throw new IllegalArgumentException(String.format("A lending contained a non-existent reader (%s)", l.getReaderCode()));
+                        throw new IllegalArgumentException(String.format("A lending was issued to a non-existent reader (%s)", l.getReaderCode()));
                     }
                     Book target = getBookByCode(l.getBookCode());
                     if (target == null)
                     {
-                        throw new IllegalArgumentException(String.format("A lending contained a non-existent book (%s)", l.getBookCode()));
+                        throw new IllegalArgumentException(String.format("A lending was for a non-existent book (%s)", l.getBookCode()));
                     }
 
                     // we only care about books still in posession of readers
