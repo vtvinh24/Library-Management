@@ -85,8 +85,8 @@ public class LinkedList<T extends Comparable> implements ListAddable<T>
             {
                 if (node == head)
                 {
-                    head = null;
-                    return;
+                    head = head.getNext();
+                    head.setPrev(null);
                 }
                 else
                 {

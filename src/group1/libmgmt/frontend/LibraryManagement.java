@@ -33,7 +33,7 @@ public class LibraryManagement
     private String outputPath = "";
     private boolean dirty = false;
 
-    private static final boolean BOOKS_BST = true;
+    private static final boolean BOOKS_BST = false;
 
     private final LinkedList<Book> llBooks = new LinkedList<>();
     private final BinarySearchTree<Book> bstBooks = new BinarySearchTree<>();
@@ -85,6 +85,7 @@ public class LibraryManagement
                 case 0:
                 {
                     needsSaving();
+                    System.out.println("");
                     System.out.println("Goodbye.");
                     return;
                 }
@@ -155,6 +156,7 @@ public class LibraryManagement
                 {
                     if (llBooks.count() > 0)
                     {
+                        System.out.println("");
                         System.out.println("Would you like to add this Book:");
                         System.out.println("1. To the front of the list");
                         System.out.println("2. To the back of the list");
@@ -770,7 +772,7 @@ public class LibraryManagement
         
         if (errors.getValue() > 0) System.out.println("");
         System.out.printf("Loaded data from %s.\n", newPath);
-        System.out.printf("%d books, %d readers, %d lendings, and %d error(s)\n", errors.getValue(), countBooks(), readers.count(), lendings.count());
+        System.out.printf("%d books, %d readers, %d lendings, and %d error(s)\n", countBooks(), readers.count(), lendings.count(), errors.getValue());
         System.out.println("");
 
         outputPath = newPath;
@@ -816,10 +818,16 @@ public class LibraryManagement
         printHeading(3, "Books");
         if (BOOKS_BST)
         {
-            // 2.1.3
-            //printBooks(bstBooks.inorder());
-            // 2.1.4
-            printBooks(bstBooks.levelOrder());
+            if (Helpers.askYesNo("Would you like print through books in level order?"))
+            {
+                // 2.1.3
+                printBooks(bstBooks.levelOrder());
+            }
+            else
+            {
+                // 2.1.4
+                printBooks(bstBooks.inorder());
+            }
         }
         else
         {
