@@ -24,10 +24,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import group1.util.lists.LinkedNode;
 import group1.util.lists.ListAddable;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -511,7 +508,7 @@ public class LibraryManagement
                             /*
                             for (Book b : list)
                             {
-                                books.delete(b);
+                                llBooks.delete(b);
                             }
                             */
 
@@ -577,21 +574,21 @@ public class LibraryManagement
         {
             if (!Helpers.askYesNo("Would you like to save to the same location?"))
             {
-                outputPath = Helpers.validatedInputLoop("Please enter new output path: ", (s) -> s);
+                outputPath = Helpers.validatedInputLoop("Please enter new output path (enter '.' to use this program's directory): ", (s) -> s);
             }
         }
 
-        File output = new File(outputPath);
-        if (!output.isDirectory() || !output.exists())
+        File newPath = new File(outputPath);
+        if (!newPath.isDirectory() || !newPath.exists())
         {
             System.out.println("Output path is either missing or invalid.");
-            output = Helpers.validatedInputLoop
+            outputPath = Helpers.validatedInputLoop
             (
                 "Please enter the output folder path (enter '.' to use this program's directory): ",
                 (s) ->
                 {
                     Helpers.throwIfNullOrWhitespace(s, "Output folder");
-                    if (s.equals(".")) s = URLDecoder.decode(this.getClass().getResource("").getPath());
+                    if (s.equals(".")) s = getMainJarDirectory();
                     s = Helpers.trimEnd(s, '\\', '/');
 
                     File newFile = new File(s);
@@ -599,10 +596,9 @@ public class LibraryManagement
                     if (!newFile.exists()) throw new IllegalArgumentException("Path doesn't exist.");
                     if (!newFile.isDirectory()) throw new IllegalArgumentException("Path doesn't point to a directory.");
 
-                    return newFile;
+                    return s;
                 }
             );
-            outputPath = output.getPath();
         }
 
         this.dirty = false;
@@ -636,7 +632,7 @@ public class LibraryManagement
         save.accept(String.format("%s/readers.csv", outputPath), readers.traverse());
         save.accept(String.format("%s/lendings.csv", outputPath), lendings.traverse());
 
-        System.out.println("Saving complete.");
+        System.out.printf("Saved data to %s.\n", outputPath);
 
         System.out.println("");
     }
@@ -669,7 +665,7 @@ public class LibraryManagement
             readers.clear();
 
             Helpers.throwIfNullOrWhitespace(newPath, "Output folder");
-            if (newPath.equals(".")) newPath = URLDecoder.decode(this.getClass().getResource("").getPath());
+            if (newPath.equals(".")) newPath = getMainJarDirectory();
             newPath = Helpers.trimEnd(newPath, '\\', '/');
 
             class ParseHelper
@@ -773,8 +769,8 @@ public class LibraryManagement
         }
         
         if (errors.getValue() > 0) System.out.println("");
-        System.out.printf("Loaded %d books, %d readers, and %d lendings.\n", countBooks(), readers.count(), lendings.count());
-        if (errors.getValue() > 0) System.out.printf("Encountered %d error(s) while loading.\n", errors.getValue());
+        System.out.printf("Loaded data from %s.\n", newPath);
+        System.out.printf("%d books, %d readers, %d lendings, and %d error(s)\n", errors.getValue(), countBooks(), readers.count(), lendings.count());
         System.out.println("");
 
         outputPath = newPath;
@@ -1013,8 +1009,12 @@ public class LibraryManagement
         {
             case 1: case 2: case 3:
             {
-                String book = choice == 1 ? null : Helpers.validatedInputLoop("Enter the book code to search for: ", (s) -> s.toUpperCase());
-                String reader = choice == 2 ? null : Helpers.validatedInputLoop("Enter the reader code to search for: ", (s) -> s.toLowerCase());
+                String book = choice == 1 
+                    ? null 
+                    : Helpers.validatedInputLoop("Enter the book code to search for:   ", (s) -> s.toUpperCase());
+                String reader = choice == 2 
+                    ? null 
+                    : Helpers.validatedInputLoop("Enter the reader code to search for: ", (s) -> s.toLowerCase());
                 selector.setValue((b) -> (book == null || b.getBookCode().contains(book)) && (reader == null || b.getReaderCode().contains(reader)));
                 break;
             }
@@ -1418,5 +1418,13 @@ public class LibraryManagement
         }
 
         System.out.printf("%s %s %s\n\n", surround, title, surround);
+    }
+    
+    private static String getMainJarDirectory()
+    {
+        String jarPath = URLDecoder.decode(LibraryManagement.class.getProtectionDomain().getCodeSource().getLocation().getPath());
+        File file = new File(jarPath);
+        if (!file.isDirectory()) return file.getParent();
+        return file.getPath();
     }
 }
