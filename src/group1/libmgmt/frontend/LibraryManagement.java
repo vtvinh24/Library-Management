@@ -651,77 +651,96 @@ public class LibraryManagement
         System.out.println("- books.csv: Contains book entries.");
         System.out.println("- readers.csv: Contains reader entries.");
         System.out.println("- lending.csv: Contains lending entries.");
-        System.out.println("Please enter the path to the folder that contains one of these files (enter '.' to use this program's directory): ");
 
-        Helpers.validatedInputLoop
+        String newPath = Helpers.validatedInputLoop
         (
-            "Input: ",
-            (s) ->
+            "Please enter the path to the folder that contains one of these files (enter '.' to use this program's directory): ",
+            (s) -> s
+        );
+        boolean tolerateErrors = Helpers.askYesNo("Should errors be tolerated?");
+        Box<Integer> errors = new Box<>(0);   
+        
+        System.out.println("");
+        System.out.println("Loading data.");
+        try
+        {
+            clearBooks();
+            lendings.clear();
+            readers.clear();
+
+            Helpers.throwIfNullOrWhitespace(newPath, "Output folder");
+            if (newPath.equals(".")) newPath = URLDecoder.decode(this.getClass().getResource("").getPath());
+            newPath = Helpers.trimEnd(newPath, '\\', '/');
+
+            class ParseHelper
             {
-                clearBooks();
-                lendings.clear();
-                readers.clear();
-
-                Helpers.throwIfNullOrWhitespace(s, "Output folder");
-                if (s.equals(".")) s = URLDecoder.decode(this.getClass().getResource("").getPath());
-                s = Helpers.trimEnd(s, '\\', '/');
-
-                class ParseHelper
+                private <T extends StringListSerializable> void parseFile
+                (
+                    String path,
+                    ListAddable<T> list,
+                    Supplier<T> instanceCreator
+                )
+                throws IOException
                 {
-                    private <T extends StringListSerializable> void parseFile
-                    (
-                        String path,
-                        ListAddable<T> list,
-                        Supplier<T> instanceCreator
-                    )
-                    throws IOException
+                    File file = new File(path);
+                    if (!file.exists()) 
                     {
-                        File file = new File(path);
-                        if (!file.exists()) return; //throw new IllegalArgumentException(String.format("%s doesn't exist.", path));
+                        System.out.printf("%s doesn't exist. Ignoring.\n", path);
+                        return;
+                    }
 
-                        ArrayList<ArrayList<String>> table = CSVUtils.parse(Files.readAllLines(file.toPath()).stream().collect(Collectors.joining("\n")));
-                        for (ArrayList<String> line : table)
-                        {
-                            T b = instanceCreator.get();
-                            b.deserialize(line);
-                            list.add(b);
+                    ArrayList<ArrayList<String>> table = CSVUtils.parse(Files.readAllLines(file.toPath()).stream().collect(Collectors.joining("\n")));
+                    for (ArrayList<String> line : table)
+                    {
+                        T b = instanceCreator.get();
+                        try
+                        { 
+                            b.deserialize(line); 
                         }
-                    }
-
-                    public ParseHelper(String path) throws IOException
-                    {
-                        // 1.1.1
-                        // 2.1.1
-                        parseFile(String.format("%s/books.csv", path), BOOKS_BST ? bstBooks : llBooks, () -> new Book());
-                        // 1.2.1
-                        // 2.2.1
-                        parseFile(String.format("%s/readers.csv", path), readers, () -> new Reader());
-                        parseFile(String.format("%s/lendings.csv", path), lendings, () -> new Lending());
+                        catch (Exception e)
+                        {
+                            if (tolerateErrors)
+                            {
+                                System.out.printf("Error while deserializing data line: %s. Skipping.\n", Helpers.trimEnd(e.getMessage(), '.'));
+                                errors.setValue(errors.getValue() + 1);
+                                continue;
+                            }
+                            else 
+                            {
+                                throw e;
+                            }
+                        }
+                        list.add(b);
                     }
                 }
 
+                public void execute(String path) throws IOException
+                {
+                    // 1.1.1
+                    // 2.1.1
+                    parseFile(String.format("%s/books.csv", path), BOOKS_BST ? bstBooks : llBooks, () -> new Book());
+                    // 1.2.1
+                    // 2.2.1
+                    parseFile(String.format("%s/readers.csv", path), readers, () -> new Reader());
+                    parseFile(String.format("%s/lendings.csv", path), lendings, () -> new Lending());
+                }
+            }
+            new ParseHelper().execute(newPath);
+
+            for (Lending l : lendings.traverse())
+            {
                 try
-                {
-                    ParseHelper dummy = new ParseHelper(s);
-                }
-                catch (Exception e)
-                {
-                    throw new IllegalArgumentException(String.format("Error: %s.", Helpers.trimEnd(e.getMessage(), '.')));
-                }
-
-                HashMap<String, ArrayList<String>> bookOwnership = new HashMap<>();
-                for (Lending l : lendings.traverse())
                 {
                     if (getReaderByCode(l.getReaderCode()) == null)
                     {
-                        throw new IllegalArgumentException(String.format("A lending contains a non-existent reader (%s)", l.getReaderCode()));
+                        throw new IllegalArgumentException(String.format("A lending contained a non-existent reader (%s)", l.getReaderCode()));
                     }
                     Book target = getBookByCode(l.getBookCode());
                     if (target == null)
                     {
-                        throw new IllegalArgumentException(String.format("A lending contains a non-existent book (%s)", l.getBookCode()));
+                        throw new IllegalArgumentException(String.format("A lending contained a non-existent book (%s)", l.getBookCode()));
                     }
-                    
+
                     // we only care about books still in posession of readers
                     // as returned books don't necessarily represent stock
                     // due to possible slimming of book stock
@@ -730,15 +749,34 @@ public class LibraryManagement
                         target.hasBeenLent();
                     }
                 }
-
-                outputPath = s;
-
-                return null;
+                catch (Exception e)
+                {
+                    if (tolerateErrors)
+                    {
+                        System.out.printf("Error while verifying lending data: %s. Removing lending.\n", Helpers.trimEnd(e.getMessage(), '.'));
+                        errors.setValue(errors.getValue() + 1);
+                        lendings.deleteObject(l);
+                    }
+                    else 
+                    {
+                        throw e;
+                    }
+                }
             }
-        );
-
+        }
+        catch (Exception e)
+        {
+            System.out.printf("Fatal error while loading data: %s\n", e.getMessage());
+            System.out.println("");
+            return;
+        }
+        
+        if (errors.getValue() > 0) System.out.println("");
         System.out.printf("Loaded %d books, %d readers, and %d lendings.\n", countBooks(), readers.count(), lendings.count());
+        if (errors.getValue() > 0) System.out.printf("Encountered %d error(s) while loading.\n", errors.getValue());
         System.out.println("");
+
+        outputPath = newPath;
     }
 
     private void find()

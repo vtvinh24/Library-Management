@@ -80,7 +80,7 @@ public final class Book extends CodeDiscriminated implements StringListSerializa
         }        
         if (lent > quantity)
         {
-            throw new IllegalArgumentException("Not enough copies to maintain current lendings.");
+            throw new IllegalArgumentException("Book quantity too low for the number of ongoing lendings.");
         }        
         this.quantity = quantity;
     }
@@ -97,7 +97,7 @@ public final class Book extends CodeDiscriminated implements StringListSerializa
         }
         if (lent > quantity)
         {
-            throw new IllegalArgumentException("Not enough copies to lend.");
+            throw new IllegalArgumentException("Book lent count too high for the number of copies currently stocked.");
         }
         
         this.lent = lent;
@@ -145,7 +145,7 @@ public final class Book extends CodeDiscriminated implements StringListSerializa
     {
         if (input.size() != 4)
         {
-            throw new IllegalArgumentException("Input didn't contain the correct number of fields.");
+            throw new IllegalArgumentException("Input data for book didn't contain the correct number of fields.");
         }
         
         setCode(input.get(0));

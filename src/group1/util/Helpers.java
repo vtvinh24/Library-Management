@@ -140,7 +140,7 @@ public final class Helpers
         
         if (question.length() >= REPEATABLE_QUESTION_LENGTH_LIMIT)
         {
-            System.out.println(question);
+            System.out.println(Helpers.trimEnd(question, ':', ' '));
             question = "Input: ";
         }
         while (true)

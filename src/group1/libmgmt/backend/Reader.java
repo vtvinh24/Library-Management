@@ -86,7 +86,7 @@ public final class Reader extends CodeDiscriminated implements StringListSeriali
     {
         if (input.size() != 3)
         {
-            throw new IllegalArgumentException("Input didn't contain the correct number of fields.");
+            throw new IllegalArgumentException("Input data for reader didn't contain the correct number of fields.");
         }
         
         setCode(input.get(0));

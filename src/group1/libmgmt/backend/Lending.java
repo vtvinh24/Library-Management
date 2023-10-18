@@ -100,7 +100,7 @@ public final class Lending implements StringListSerializable, Comparable<Lending
     {
         if (input.size() != 3)
         {
-            throw new IllegalArgumentException("Input didn't contain the correct number of fields.");
+            throw new IllegalArgumentException("Input data for lending didn't contain the correct number of fields.");
         }
         
         setBookCode(input.get(0));

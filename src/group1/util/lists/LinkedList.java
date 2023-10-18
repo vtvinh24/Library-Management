@@ -101,7 +101,7 @@ public class LinkedList<T extends Comparable> implements ListAddable<T>
     }
     public void deleteObject(T t)
     {
-        delete((v) -> v.equals(t));
+        delete((v) -> v == t);
     }
     public void delete(T t)
     {
